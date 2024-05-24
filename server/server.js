@@ -27,8 +27,12 @@ io.on("connection", (socket) => {
 			scores[room] = [0, 0];
 		}
 
-		if (betAmount > 0) {
+		if (betAmounts[room].length < 2 && (betAmounts[room].length === 0 || betAmounts[room][0] === betAmount)) {
 			betAmounts[room].push(betAmount);
+		} else {
+			io.to(socket.id).emit("bet-mismatch", `The bet amount for room ${room} is ${betAmounts[room][0]}. Please join with the same bet amount.`);
+			socket.leave(room);
+			return;
 		}
 
 		if (betAmounts[room].length > 2) {
