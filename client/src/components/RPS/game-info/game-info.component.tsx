@@ -2,7 +2,6 @@ import logo from "../../../assets/images/rps/logo-bonus.svg";
 
 import { GameInfoContainer, GameLogo, GameScore } from "./game-info.styles";
 
-
 import { useAppSelector } from "../../../redux/hooks";
 
 type GameInfoProps = {

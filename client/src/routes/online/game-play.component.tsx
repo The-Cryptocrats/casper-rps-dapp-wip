@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 
 import icons from "../../data";
@@ -29,6 +29,11 @@ import {
 	SecondPlayer,
 } from "../../styles/game-play.styles";
 
+import {
+	setScore,
+	setOpponentScore,
+} from "../../redux/score/online-score.slice";
+
 const OnlineGamePlay = (): JSX.Element => {
 	const { playerOneActive, playerChoice, opponent } = useAppSelector(
 		(state) => state.onlinePlayers,
@@ -46,23 +51,32 @@ const OnlineGamePlay = (): JSX.Element => {
 	const opponentImage = secondPlayerData?.image;
 
 	useEffect(() => {
+		socket.on("scores", (newScores) => {
+			const myScore = playerOneActive ? newScores[0] : newScores[1];
+			const opponentScore = playerOneActive ? newScores[1] : newScores[0];
+
+			dispatch(setScore(myScore));
+			dispatch(setOpponentScore(opponentScore));
+		});
+
 		socket.on("result", (data) => {
 			dispatch(setResultOut(true));
-
 			const { winner } = data;
+			console.log("WinnerData:", data);
 
-			if (
-				(winner === "player1" && playerOneActive) ||
-				(winner === "player2" && !playerOneActive)
-			) {
-				dispatch(setWinnerText(`you win`));
+			if (winner === "player1" && playerOneActive) {
+				dispatch(setWinnerText("you win"));
 				dispatch(increment());
 				dispatch(setDidWin(true));
-			} else if (winner === "player1" || winner === "player2") {
-				dispatch(setWinnerText(`you lose`));
-				dispatch(decrement());
+			} else if (winner === "player2" && !playerOneActive) {
+				dispatch(setWinnerText("you win"));
+				dispatch(increment());
+				dispatch(setDidWin(true));
+			} else if (winner === "draw") {
+				dispatch(setWinnerText("draw"));
 			} else {
-				dispatch(setWinnerText(`draw`));
+				dispatch(setWinnerText("you lose"));
+				dispatch(decrement());
 			}
 		});
 
@@ -73,11 +87,11 @@ const OnlineGamePlay = (): JSX.Element => {
 		});
 
 		return () => {
+			socket.off("scores");
 			socket.off("result");
 			socket.off("restart-message");
 		};
-	}, [resultOut]);
-
+	}, [resultOut, playerOneActive]);
 	const startNewGame = () => {
 		dispatch(setGamePlay(false));
 		dispatch(setDidWin(false));
