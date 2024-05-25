@@ -18,26 +18,34 @@ let choices = { p1Choice: null, p2Choice: null };
 let betAmounts = {};
 let scores = {};
 let userCount = {};
-let playerRoles = {}; // Store player roles (player1 or player2)
+let playerRoles = {};
+let playerRounds = {};
+let rounds = {};
 
 io.on("connection", (socket) => {
-	socket.on("join-room", ({ room, betAmount = 0 }) => {
+	socket.on("join-room", ({ room, betAmount = 0, numberOfRounds = 0 }) => {
 		if (!userCount[room]) {
 			userCount[room] = 0;
+		}
+
+		if (!rounds[room]) {
+			rounds[room] = numberOfRounds;
+		}
+
+		if (!playerRounds[room]) {
+			playerRounds[room] = {};
 		}
 
 		if (userCount[room] < 2) {
 			socket.join(room);
 			userCount[room]++;
 
-			// Assign player roles (player1 or player2)
 			playerRoles[socket.id] = userCount[room] === 1 ? "player1" : "player2";
 
 			if (!betAmounts[room]) {
 				betAmounts[room] = [];
 				scores[room] = [0, 0];
 			}
-
 			if (
 				betAmounts[room].length < 2 &&
 				(betAmounts[room].length === 0 || betAmounts[room][0] === betAmount)
@@ -50,6 +58,7 @@ io.on("connection", (socket) => {
 				);
 				socket.leave(room);
 				userCount[room]--;
+				delete playerRounds[room][socket.id];
 				return;
 			}
 
@@ -65,9 +74,11 @@ io.on("connection", (socket) => {
 				const users = roomSockets ? [...roomSockets.keys()] : [];
 				io.to(room).emit("updated-users", users);
 
-				// Emit initial scores to each player, ensuring correct order
 				io.to(users[0]).emit("scores", scores[room]);
+				io.to(users[0]).emit("rounds-update", rounds[room]);
+
 				io.to(users[1]).emit("scores", [scores[room][1], scores[room][0]]);
+				io.to(users[1]).emit("rounds-update", rounds[room]);
 
 				socket.on("game-play", () => {
 					socket.broadcast
@@ -76,9 +87,58 @@ io.on("connection", (socket) => {
 				});
 
 				socket.on("restart", () => {
-					socket.broadcast
-						.to(room)
-						.emit("restart-message", "Opponent wants to play again");
+					if (!choices.restartInitiated) {
+						choices.restartInitiated = true;
+
+						if (rounds[room] > 1) {
+							rounds[room]--;
+							io.to(room).emit("rounds-update", rounds[room]);
+
+							socket.broadcast
+								.to(room)
+								.emit(
+									"restart-message",
+									`Opponent wants to play again. Rounds left: ${rounds[room]}`,
+								);
+						} else {
+							const roomSockets = io.sockets.adapter.rooms.get(room);
+							const player1SocketId = roomSockets ? [...roomSockets][0] : null;
+							const player2SocketId = roomSockets ? [...roomSockets][1] : null;
+
+							if (player1SocketId && player2SocketId) {
+								const finalScores = scores[room];
+								const winner =
+									finalScores[0] > finalScores[1]
+										? "Player 1"
+										: finalScores[0] < finalScores[1]
+											? "Player 2"
+											: "Draw";
+								const totalBet = betAmounts[room].reduce((a, b) => a + b, 0);
+
+								io.to(player1SocketId).emit("game-over", {
+									betAmount: totalBet,
+									rounds: numberOfRounds,
+									player1Score: finalScores[0],
+									player2Score: finalScores[1],
+									winner: winner,
+								});
+
+								io.to(player2SocketId).emit("game-over", {
+									betAmount: totalBet,
+									rounds: numberOfRounds,
+									player1Score: finalScores[1],
+									player2Score: finalScores[0],
+									winner: winner,
+								});
+							}
+
+							delete userCount[room];
+							delete betAmounts[room];
+							delete scores[room];
+							delete rounds[room];
+							delete choices[room];
+						}
+					}
 				});
 
 				socket.on("disconnect", () => {
@@ -181,7 +241,6 @@ const declareWinner = (room, socket) => {
 		}
 	} else winner = "draw";
 
-	// Emit result to each player based on their role
 	const roomSockets = io.sockets.adapter.rooms.get(room);
 	if (roomSockets) {
 		roomSockets.forEach((socketId) => {
@@ -200,8 +259,7 @@ const declareWinner = (room, socket) => {
 
 	io.to(room).emit("result", { winner: winner });
 	io.to(room).emit("scores", scores[room]);
-
-	choices = { p1Choice: null, p2Choice: null };
+	choices = { p1Choice: null, p2Choice: null, restartInitiated: false };
 	betAmounts[room] = [];
 };
 

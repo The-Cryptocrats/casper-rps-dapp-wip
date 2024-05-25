@@ -4,6 +4,8 @@ import { io } from "socket.io-client";
 import OnlineGameStart from "./game-start.component";
 import Button from "../../components/RPS/button/button.component";
 import { setSockets, setRoom } from "../../redux/socket/socket.slice";
+import { setRounds } from "../../redux/socket/socket.slice";
+
 import {
 	setPlayerOneActive,
 	setIsPlaying,
@@ -24,6 +26,7 @@ const Room = (): JSX.Element => {
 	const [createdRoom, setCreatedRoom] = useState(false);
 	const [joinRoom, setJoinRoom] = useState(false);
 	const [betAmount, setBetAmount] = useState(0.0001);
+	const [numberOfRounds, setNumberOfRounds] = useState(1);
 
 	const dispatch = useAppDispatch();
 
@@ -66,14 +69,19 @@ const Room = (): JSX.Element => {
 		}
 	};
 
+	const handleNumberOfRoundsChange = (e: any) => {
+		setNumberOfRounds(parseInt(e.target.value, 10) || 1);
+	};
+
 	const handleCreateRoom = (e: any) => {
 		e.preventDefault();
 		dispatch(setPlayerOneActive(true));
 		dispatch(setReduxBetAmount(betAmount));
+		dispatch(setRounds(numberOfRounds));
 		room &&
-			socket.emit("join-room", { room, betAmount }) &&
+			socket.emit("join-room", { room, betAmount, numberOfRounds }) &&
 			setSuccessMessage(
-				`You created room ${room} with a bet of ${betAmount} & joined`,
+				`You created room ${room} with a bet of ${betAmount} for ${numberOfRounds} rounds & joined`,
 			);
 		setCreatedRoom(true);
 	};
@@ -81,7 +89,7 @@ const Room = (): JSX.Element => {
 	const handleJoinRoom = (e: any) => {
 		e.preventDefault();
 		dispatch(setReduxBetAmount(betAmount));
-		room && socket.emit("join-room", { room, betAmount });
+		room && socket.emit("join-room", { room, betAmount, numberOfRounds });
 	};
 
 	return (
@@ -126,6 +134,15 @@ const Room = (): JSX.Element => {
 								aria-label="bet-amount"
 								placeholder="Enter bet amount"
 							/>
+							<FormInput
+								title="Number of Rounds"
+								type="number"
+								value={numberOfRounds}
+								onChange={handleNumberOfRoundsChange}
+								min={1}
+								aria-label="number-of-rounds"
+								placeholder="Enter number of rounds"
+							/>
 							<br />
 							<Button type="submit" btnStyle="primary">
 								Create Room
@@ -148,6 +165,15 @@ const Room = (): JSX.Element => {
 								min={0.0001}
 								aria-label="bet-amount"
 								placeholder="Enter bet amount"
+							/>
+							<FormInput
+								title="Number of Rounds"
+								type="number"
+								value={numberOfRounds}
+								onChange={handleNumberOfRoundsChange}
+								min={1}
+								aria-label="number-of-rounds"
+								placeholder="Enter number of rounds"
 							/>
 							<br />
 							<Button type="submit" btnStyle="primary">
