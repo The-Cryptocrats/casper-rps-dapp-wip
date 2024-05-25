@@ -11,6 +11,7 @@ type GameInfoProps = {
 
 const GameInfo = ({ score, opponentScore }: GameInfoProps): JSX.Element => {
 	const betAmount = useAppSelector((state) => state.onlinePlayers.betAmount);
+	const rounds = useAppSelector((state) => state.socket.rounds); // Get rounds from Redux
 
 	return (
 		<GameInfoContainer>
@@ -30,6 +31,10 @@ const GameInfo = ({ score, opponentScore }: GameInfoProps): JSX.Element => {
 				<div>
 					<span>Bet</span>
 					<span>{betAmount}</span>
+				</div>
+				<div>
+					<span>Rounds Left</span>
+					<span>{rounds}</span>
 				</div>
 			</GameScore>
 		</GameInfoContainer>

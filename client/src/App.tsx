@@ -14,6 +14,8 @@ import {
 	Navigate,
 } from "react-router-dom";
 
+import GameResults from "./routes/online/game-results.component";
+
 const Home = lazy(() => import("./routes/home/home.component"));
 const Offline = lazy(() => import("./routes/offline/game-start.component"));
 const Online = lazy(() => import("./routes/online/room.component"));
@@ -82,7 +84,6 @@ const App = () => {
 								)
 							}
 						/>
-
 						<Route
 							path="/game"
 							element={activeAccount ? <Home /> : <Navigate to="/" />}
@@ -95,6 +96,7 @@ const App = () => {
 							path="/game/offline"
 							element={activeAccount ? <Offline /> : <Navigate to="/" />}
 						/>
+						<Route path="/game-results" element={<GameResults />} />
 					</Routes>
 				</ThemeProvider>
 			</main>
