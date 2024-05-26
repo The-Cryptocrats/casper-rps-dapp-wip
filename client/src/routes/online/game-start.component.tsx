@@ -13,6 +13,25 @@ import { setRounds, decrementRounds } from "../../redux/socket/socket.slice"; //
 import { socket } from "./room.component";
 
 import GameStatus from "./game-status.component";
+import styled from "styled-components";
+import Button from "../../components/RPS/button/button.component";
+
+const QuitButtonContainer = styled.div`
+	display: grid;
+	margin-bottom: 1rem; // Add some spacing 
+
+	// Animation (adjust as needed)
+	animation-name: slideInUp;
+	animation-duration: 1s;
+	animation-delay: 1.3s;
+	animation-fill-mode: backwards;
+
+	@media (min-width: 1024px) {
+		position: absolute;
+		bottom: 6rem; // Adjust position relative to Rules button
+		right: 3rem;
+	}
+`;
 
 const OnlineGameStart = (): JSX.Element => {
 	const { score, opponentScore } = useAppSelector(
@@ -52,11 +71,22 @@ const OnlineGameStart = (): JSX.Element => {
 		};
 	}, [navigate]);
 
+	const handleQuitGame = () => {
+		socket.emit("forfeit");
+		navigate("/");
+		window.location.reload();
+	};
+
 	return (
 		<div className="Game Game__Container">
 			<GameInfo score={score} opponentScore={opponentScore} />
 			<OnlineGameBody />
 			<GameStatus />
+			<QuitButtonContainer>
+				<Button type="button" handler={handleQuitGame} btnStyle={"secondary"}>
+					Quit Game
+				</Button>
+			</QuitButtonContainer>
 			{showRules ? (
 				<GameRulesImage closeHandler={rulesHandler} />
 			) : (

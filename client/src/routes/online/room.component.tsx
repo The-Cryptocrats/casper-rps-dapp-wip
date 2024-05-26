@@ -25,7 +25,7 @@ const Room = (): JSX.Element => {
 	const [successMessage, setSuccessMessage] = useState("");
 	const [createdRoom, setCreatedRoom] = useState(false);
 	const [joinRoom, setJoinRoom] = useState(false);
-	const [betAmount, setBetAmount] = useState(0.0001);
+	const [betAmount, setBetAmount] = useState(30);
 	const [numberOfRounds, setNumberOfRounds] = useState(1);
 
 	const dispatch = useAppDispatch();
@@ -64,7 +64,7 @@ const Room = (): JSX.Element => {
 
 	const handleBetAmountChange = (e: any) => {
 		const value = Number(e.target.value);
-		if (value >= 0.0001) {
+		if (value >= 30) {
 			setBetAmount(value);
 		}
 	};
@@ -129,8 +129,8 @@ const Room = (): JSX.Element => {
 								type="number"
 								value={betAmount}
 								onChange={handleBetAmountChange}
-								step={0.0001}
-								min={0.0001}
+								step={1}
+								min={30}
 								aria-label="bet-amount"
 								placeholder="Enter bet amount"
 							/>
@@ -161,8 +161,8 @@ const Room = (): JSX.Element => {
 								type="number"
 								value={betAmount}
 								onChange={handleBetAmountChange}
-								step={0.0001}
-								min={0.0001}
+								step={1}
+								min={30}
 								aria-label="bet-amount"
 								placeholder="Enter bet amount"
 							/>
