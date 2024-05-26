@@ -154,17 +154,19 @@ io.on("connection", (socket) => {
 				});
 
 				socket.on("forfeit", () => {
-					socket.broadcast
-						.to(room)
-						.emit(
-							"opponent-forfeited",
-							`Opponent forfeited the game. You win ${betAmounts[room].reduce(
-								(a, b) => a + b,
-								0,
-							)} units.`,
-						);
-					betAmounts[room] = [];
-					scores[room] = [0, 0];
+					const room = [...socket.rooms][1]; // Get the room name
+
+					if (room) {
+						socket.broadcast
+							.to(room)
+							.emit("opponent-forfeited", `Opponent forfeited the game.`);
+
+						// betAmounts[room] = [];
+						// scores[room] = [0, 0];
+
+						socket.leave(room);
+						userCount[room]--;
+					}
 				});
 
 				socket.on("p1Choice", (data) => {

@@ -70,8 +70,8 @@ const GameResults = () => {
 			<GameOver>Game Over!</GameOver>
 			<Info>Bet Amount: {gameResults.betAmount} CSPR</Info>
 			<Info>Rounds: {gameResults.rounds}</Info>
-			<Info>Your Score:{gameResults.player1Score}</Info>
-			<Info>Opponent Score:{gameResults.player2Score}</Info>
+			<Info>Your Score: {gameResults.player1Score}</Info>
+			<Info>Opponent Score: {gameResults.player2Score}</Info>
 			<Info>Winner: {gameResults.winner}</Info>
 			<PlayAgainButton onClick={handleClick}>Play Again</PlayAgainButton>
 		</ResultsContainer>
