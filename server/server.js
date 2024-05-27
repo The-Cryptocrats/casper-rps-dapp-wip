@@ -48,13 +48,13 @@ io.on("connection", (socket) => {
 			}
 			if (
 				betAmounts[room].length < 2 &&
-				(betAmounts[room].length === 0 || betAmounts[room][0] === betAmount)
+				((betAmounts[room].length === 0 || betAmounts[room][0] === betAmount) && (userCount[room] > 0 && rounds[room] === numberOfRounds))
 			) {
 				betAmounts[room].push(betAmount);
 			} else {
 				io.to(socket.id).emit(
 					"bet-mismatch",
-					`The bet amount for room ${room} is ${betAmounts[room][0]}. Please join with the same bet amount.`,
+					`The bet amount for room ${room} is ${betAmounts[room][0]} and rounds ${rounds[room]}. Please join with the same bet amount and number of rounds.`,
 				);
 				socket.leave(room);
 				userCount[room]--;

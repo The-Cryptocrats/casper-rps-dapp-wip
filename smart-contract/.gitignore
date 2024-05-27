@@ -1,0 +1,5 @@
+contract/target/
+tests/
+tests/target/
+casper-account-keys/
+Report.md
